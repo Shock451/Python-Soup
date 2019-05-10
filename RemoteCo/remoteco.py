@@ -36,10 +36,10 @@ for listing in job_listings:
 	# download the webpage 
 	response = requests.get(sub_url)
 	# create a soup object with the data from the webpage
-	omi_obe = BeautifulSoup(response.text, "html.parser")
+	soup = BeautifulSoup(response.text, "html.parser")
 
 	# position the object at the node to start from
-	job_div = omi_obe.div.find(class_="job_listing")
+	job_div = soup.div.find(class_="job_listing")
 
 	# get job title
 	title = job_div.h1.get_text()

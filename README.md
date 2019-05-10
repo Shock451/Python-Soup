@@ -1,4 +1,4 @@
-# Python-Beautiful Soup - Omi-obe
+# Python-Beautiful Soup
 
 - Web scraping for open job information and results.
 

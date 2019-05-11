@@ -9,7 +9,7 @@ import time
 from bs4 import BeautifulSoup
 # to make use of the json library
 import json
-
+# to parse urls
 from urllib.parse import urlparse
 
 # get current time
@@ -33,6 +33,7 @@ job_listings = base_soup.find_all("li", class_="job-list-item")
 
 # for each job url
 for listing in job_listings:
+	# some links may be broken
 	try:
 		# get tag elements
 		tag_elements = listing.find_all("a", class_="job-tag")
@@ -42,10 +43,12 @@ for listing in job_listings:
 			#loop through each tag and append its' contents
 			tags.append(tag_element.get_text().strip())
 
+		# location is not always present
 		location = None
 		try:
 			location = listing.find("span", class_="location").span.get_text()
 		except:
+				# set as remote when unavailable
 				location = "Remote"
 		# set the url
 		sub_url = listing.a.get("href")
@@ -59,30 +62,32 @@ for listing in job_listings:
 
 		# get job title
 		title = job_div.h1.get_text()
-		# get company name
-		company_name = job_div.find(class_="company").get_text() # present
+		# get company name from meta tag
+		company_name = job_div.find(class_="company").get_text()
 		# get website link
 		website_link = "https://remotive.io" + job_div.find(class_="btn-apply")['href']
-		# get company logo
-		company_logo = soup.find("meta",  property="og:image")['content'] # present
+		# get company logo from meta tag
+		company_logo = soup.find("meta",  property="og:image")['content']
 
-		# get redirect uri
+		# get redirect uri by setting referer in request headers to be sent
 		headers = {
 							"referer": "https://remotive.io" + sub_url
 					}
+		# send request in order to retrieve redirect uri
 		sub_sub_request = requests.get(website_link, headers=headers)
-		# get company logo's source
+		# get company application link
 		apply_link = sub_sub_request.url
-		# get company link
+		# get company link / website link by parsing the uri to get host
 		parsed_uri = urlparse(apply_link)
 		company_link = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 		# get job description
 		description = job_div.find(class_="job-description").prettify()
-		# get company's location
+		# get job posting data
 		date = job_div.find(class_="content").find_all("p")[1].get_text()
 		# get the time of posting from date
 		post_time = job_div.find(class_="content").find_all("p")[0].get_text()
 		
+		# append data 
 		data['jobs'].append(
 			{
 											'title': title.strip(),
@@ -98,6 +103,7 @@ for listing in job_listings:
 		# wait a sec, don't break the site
 		time.sleep(1)
 	except: 
+		# Don't do anything
 		pass
 
 
@@ -109,5 +115,5 @@ with open('remotive.json', 'w') as data_destination:
 # store finish time
 end = time.time()
 
-# print finish time
+# print execution time
 print(end - start)
